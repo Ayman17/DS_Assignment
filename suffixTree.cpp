@@ -7,17 +7,21 @@ using namespace std;
 class Node 
 {
     public:
-        char* suffix = nullptr;
         int startIndex = -1;
+        int length = 0;
         int leafIndex = -1;
         Node* children = nullptr;
         Node* next = nullptr;
+        
+        Node(int startIndex, int length) {
+            this->startIndex = startIndex;
+            this->length = length;
+        }
 
-        int getBiggestMatch(const char* str) {
+        int getBiggestMatch(char* str, int suffixIndex, int suffixLength) {
             int result = 0;
-            int length = strlen(str);
-            for (int i = 0; i < length; i++) {
-                if (str[i] != suffix[i]) {
+            for (int i = 0; i < length && i < suffixLength; i++) {
+                if (str[suffixIndex + i] != str[startIndex + i]) {
                     return result;
                 }
                 result++;
@@ -46,37 +50,39 @@ class SuffixTree
 public:
     Node *root = nullptr;
     int nodeCounter = 0;
+    int length;
+    char* str;
 
     SuffixTree(char *str)
     {
-        buildTree(str);
+        this->str = str;
+        length = strlen(str);
+        buildTree();
 
-        printAll(root);
         printf("Nodes: %d\n", nodeCounter);
     }
 
-    void buildTree(const char* str) {
-        root = new Node();
+    void buildTree() {
+        root = new Node(-1, 0);
         nodeCounter++;
         int length = strlen(str);
         for (int i = length - 1; i >= 0; i--)
         {
-            
-            char* currentStr = new char[length];
-            strncpy(currentStr, str + i, length - i);
-            currentStr[length - i] = '\0';
-            addSuffix(root, currentStr);
+            // char* currentStr = new char[length];
+            // strncpy(currentStr, str + i, length - i);
+            // currentStr[length - i] = '\0';
+            addSuffix(root, i);
         }
     }
 
-    void addSuffix(Node* node, const char* str) {
+    void addSuffix(Node* node, int currentIndex) {
         Node* matchingNode = nullptr;
 
-        int length = strlen(str);
+        // int length = strlen(str);
 
         Node* current = node->children; 
         while (current != nullptr) {
-            if (current->suffix[0] == str[0]) {
+            if (str[current->startIndex] == str[currentIndex]) {
                 matchingNode = current;
                 break;
             }
@@ -84,51 +90,52 @@ public:
         }
 
         if (matchingNode == nullptr) {
-            Node* newNode = new Node();
-            newNode->suffix = new char[length];
-            strncpy(newNode->suffix, str, length);
-            newNode->suffix[length] = '\0';
+            Node* newNode = new Node(currentIndex, length - currentIndex);
+            // newNode->suffix = new char[length];
+            // strncpy(newNode->suffix, str, length);
+            // newNode->suffix[length] = '\0';
             node->appendChild(newNode);
             nodeCounter++;
         } else {
-            int match = matchingNode->getBiggestMatch(str);
+            int match = matchingNode->getBiggestMatch(str, currentIndex, length - currentIndex);
 
-            if (match == strlen(matchingNode->suffix)) {
-                char* newStr = new char[length - match];
-                strncpy(newStr, str + match, length - match);
-                newStr[length - match] = '\0';
-                addSuffix(matchingNode, newStr);
+            if (match == matchingNode->length) {
+                // char* newStr = new char[length - match];
+                // strncpy(newStr, str + match, length - match);
+                // newStr[length - match] = '\0';
+                addSuffix(matchingNode, currentIndex + match);
             } else {
-                divideNode(matchingNode, str, match);
+                divideNode(matchingNode, currentIndex, match);
             }
         }
     }
 
-    void divideNode(Node* node, const char* str, int match) {
-        Node* newNode = new Node();
+    void divideNode(Node* node, int currentIndex, int match) {
+        Node* newNode = new Node(currentIndex + match, length - (currentIndex + match));
         nodeCounter++;
-        Node* prevDataNode = new Node();
+        Node* prevDataNode = new Node(node->startIndex + match, node->length - match);
         Node* prevDataChildren = node->children;
         int length = strlen(str);
         nodeCounter++;
+        node->length = match;
         // printf("node: %s\n", node->suffix);
         // printf("str: %s\n", str);
 
-        prevDataNode->suffix = new char[length];
-        int nodeSufLength = strlen(node->suffix);
-        for (int i = 0; i < nodeSufLength; i++) {
-            prevDataNode->suffix[i] = node->suffix[i + match];
-        }
-        prevDataNode->suffix[nodeSufLength] = '\0';
+        // prevDataNode->suffix = new char[length];
+        // int nodeSufLength = strlen(node->suffix);
+        // for (int i = 0; i < nodeSufLength; i++) {
+            // prevDataNode->suffix[i] = node->suffix[i + match];
+        // }
+        // prevDataNode->suffix[nodeSufLength] = '\0';
 
 
-        newNode->suffix = new char[length];
-        for (int i = 0; i < length - match; i++) {
-            newNode->suffix[i] = str[i + match];
-        }
-        newNode->suffix[length - match] = '\0';
+        // newNode->suffix = new char[length];
+        // for (int i = 0; i < length - match; i++) {
+            // newNode->suffix[i] = str[i + match];
+        // }
+        // newNode->suffix[length - match] = '\0';
 
-        node->suffix[match] = '\0';
+        // node->suffix[match] = '\0';
         // printf("node: %s\n", node->suffix);
         // printf("newNode: %s\n", newNode->suffix);
         // printf("prevData: %s\n\n", prevDataNode->suffix);
@@ -138,21 +145,20 @@ public:
         prevDataNode->children = prevDataChildren;
     }
 
-    void printAll(Node* node) {
-        if (node == nullptr) {
-            return;
-        }
-
-        Node* current = node->children;
-        while (current != nullptr) {
-            if (current->suffix != nullptr) {
-                printf("%s\n", current->suffix);
-            }
-            printAll(current->children);
-            current = current->next;
-        }
-
-    }
+    // void Search(const char* suffix) {
+    //     search(root, suffix);
+    // }
+    // void search(Node* node, const char* suffix) {
+    //     Node* matchingNode = nullptr;
+    //     Node* current = node->children;
+    //     while (current != nullptr) {
+    //         if (current->suffix[0] == suffix[0]) {
+    //             matchingNode = current;
+    //             break;
+    //         }
+    //     }
+        
+    // }
 };
 
 int main()
