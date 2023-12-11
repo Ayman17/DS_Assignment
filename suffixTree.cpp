@@ -64,11 +64,11 @@ public:
         int length = strlen(str);
         for (int i = length - 1; i >= 0; i--)
         {
-            addSuffix(root, i);
+            addSuffix(root, i, i);
         }
     }
 
-    void addSuffix(Node* node, int currentIndex) {
+    void addSuffix(Node* node, int currentIndex, int suffixIndex) {
         Node* matchingNode = nullptr;
 
         Node* current = node->children; 
@@ -82,23 +82,23 @@ public:
 
         if (matchingNode == nullptr) {
             Node* newNode = new Node(currentIndex, length - currentIndex);
-            newNode->suffixIndex = currentIndex;
+            newNode->suffixIndex = suffixIndex;
             node->appendChild(newNode);
             nodeCounter++;
         } else {
             int match = matchingNode->getBiggestMatch(str, currentIndex, length - currentIndex);
 
             if (match == matchingNode->length) {
-                addSuffix(matchingNode, currentIndex + match);
+                addSuffix(matchingNode, currentIndex + match, suffixIndex);
             } else {
-                divideNode(matchingNode, currentIndex, match);
+                divideNode(matchingNode, currentIndex, match, suffixIndex);
             }
         }
     }
 
-    void divideNode(Node* node, int currentIndex, int match) {
+    void divideNode(Node* node, int currentIndex, int match, int newSuffixIndex) {
         Node* newNode = new Node(currentIndex + match, length - (currentIndex + match));
-        newNode->suffixIndex = currentIndex;  
+        newNode->suffixIndex = newSuffixIndex;  
         nodeCounter++;
         Node* prevDataNode = new Node(node->startIndex + match, node->length - match);
         // Node* prevDataChildren = node->children;
@@ -117,6 +117,7 @@ public:
     // void Search(const char* suffix) {
     //     search(root, suffix);
     // }
+
     // void search(Node* node, const char* suffix) {
     //     Node* matchingNode = nullptr;
     //     Node* current = node->children;
