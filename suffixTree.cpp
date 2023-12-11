@@ -23,7 +23,7 @@ class Node
             }
         }
 
-        void appendNode(Node* node) {
+        void appendChild(Node* node) {
             if (children == nullptr) {
                 children = node; 
             } else {
@@ -49,7 +49,7 @@ public:
     SuffixTree(char *str)
     {
         buildTree(str);
-        
+
         printAll(root);
         printf("Nodes: %d\n", nodeCounter);
     }
@@ -57,45 +57,80 @@ public:
     void buildTree(const char* str) {
         root = new Node();
         nodeCounter++;
-        Node* last = nullptr;
         int length = strlen(str);
         for (int i = length - 1; i >= 0; i--)
         {
+            
             char* currentStr = new char[length];
             strncpy(currentStr, str + i, length - i);
             currentStr[length - i] = '\0';
-
-            Node* current = root->children;
-            bool foundMatch = false;
-            while (current != nullptr) {
-                int match = current->getBiggestMatch(currentStr);
-                if (match != 0) {
-                    divideNode(current, currentStr, match);
-                    foundMatch = true;
-                    break;
-                }
-                current = current->next;
-            }
-
-            if (foundMatch) {
-                continue;
-            }
-
-            Node* newNode = new Node();
-            nodeCounter++;
-
-            newNode->suffix = currentStr;
-
-            if (last != nullptr) { 
-                last->next = newNode;
-            }
-
-            if (root->children == nullptr) {
-                root->children = newNode;
-            }
-
-            last = newNode;
+            addSuffix(root, currentStr);
         }
+    }
+
+    void addSuffix(Node* node, const char* str) {
+        Node* matchingNode = nullptr;
+
+        Node* current = node->children; 
+        while (current != nullptr) {
+            if (current->suffix[0] == str[0]) {
+                matchingNode = current;
+                break;
+            }
+            current = current->next;
+        }
+
+        if (matchingNode == nullptr) {
+            Node* newNode = new Node();
+            newNode->suffix = new char[strlen(str)];
+            strncpy(newNode->suffix, str, strlen(str));
+            newNode->suffix[strlen(str)] = '\0';
+            node->appendChild(newNode);
+            nodeCounter++;
+        } else {
+            int match = matchingNode->getBiggestMatch(str);
+
+            if (match == strlen(matchingNode->suffix)) {
+                char* newStr = new char[strlen(str) - match];
+                strncpy(newStr, str + match, strlen(str) - match);
+                newStr[strlen(str) - match] = '\0';
+                addSuffix(matchingNode, newStr);
+            } else {
+                divideNode(matchingNode, str, match);
+            }
+        }
+    }
+
+    void divideNode(Node* node, const char* str, int match) {
+        Node* newNode = new Node();
+        nodeCounter++;
+        Node* prevDataNode = new Node();
+        Node* prevDataChildren = node->children;
+        nodeCounter++;
+        printf("node: %s\n", node->suffix);
+        printf("str: %s\n", str);
+
+        prevDataNode->suffix = new char[strlen(str)];
+        for (int i = 0; i < strlen(node->suffix); i++) {
+            prevDataNode->suffix[i] = node->suffix[i + match];
+        }
+        prevDataNode->suffix[strlen(node->suffix)] = '\0';
+
+
+        newNode->suffix = new char[strlen(str)];
+        for (int i = 0; i < strlen(str) - match; i++) {
+            newNode->suffix[i] = str[i + match];
+        }
+        newNode->suffix[strlen(str) - match] = '\0';
+
+        node->suffix[match] = '\0';
+        printf("node: %s\n", node->suffix);
+        printf("newNode: %s\n", newNode->suffix);
+        printf("prevData: %s\n\n", prevDataNode->suffix);
+        node->children = nullptr;
+        node->appendChild(prevDataNode);
+        node->appendChild(newNode);
+        prevDataNode->children = prevDataChildren;
     }
 
     void printAll(Node* node) {
@@ -112,35 +147,6 @@ public:
             current = current->next;
         }
 
-    }
-
-    void divideNode(Node* node, const char* str, int match) {
-        Node* newNode = new Node();
-        nodeCounter++;
-        Node* prevDataNode = new Node();
-        nodeCounter++;
-        // printf("node: %s\n", node->suffix);
-        // printf("str: %s\n", str);
-
-        prevDataNode->suffix = new char[strlen(str)];
-        for (int i = 0; i < strlen(node->suffix); i++) {
-            prevDataNode->suffix[i] = node->suffix[i + match];
-        }
-        prevDataNode->suffix[strlen(node->suffix)] = '\0';
-
-
-        newNode->suffix = new char[strlen(str)];
-        for (int i = 0; i < strlen(str) - match; i++) {
-            newNode->suffix[i] = str[i + match];
-        }
-        newNode->suffix[strlen(str) - match] = '\0';
-
-        node->suffix[match] = '\0';
-        // printf("node: %s\n", node->suffix);
-        // printf("newNode: %s\n", newNode->suffix);
-        // printf("prevData: %s\n", prevDataNode->suffix);
-        node->appendNode(prevDataNode);
-        node->appendNode(newNode);
     }
 };
 
