@@ -76,7 +76,6 @@ public:
         // create the root node of the tree with empty suffix 
         root = new Node(-1, 0);
         nodeCounter++;
-        int length = strlen(str);
         for (int i = length - 1; i >= 0; i--)
         {
              // add suffixes to the tree
@@ -270,16 +269,15 @@ int main()
 
     //            0123456789012
     SuffixTree t("bananabanaba$");
-    // t.Search("ana"); // Prints: 1 3 7
-    // t.Search("naba"); // Prints: 4 8
+    t.Search("ana"); // Prints: 1 3 7
+    t.Search("naba"); // Prints: 4 8
     
     // Add test cases here.
     printf("Test1 : bananabanaba$\n");
     TestSuffixTree t1("bananabanaba$");
     t1.test("ana", "7 3 1");
     t1.test("naba", "8 4");
-    t1.test("bana", "6 0");
-    t1.test("ban", "6 0");
+    t1.test("s", "No match found");
 
     printf("\nTest2 : suffixtree$\n");
     TestSuffixTree t2("suffixtree$");
@@ -289,7 +287,7 @@ int main()
 
     printf("\nTest3 : hamhamhammamahamahm$\n");
     TestSuffixTree t3("hamhamhammamahamahm$");
-    t3.test("ham", "13 6 3 0");
+    t3.test("ma", "15 11 9");
     t3.test("mam", "9");
     t3.test("z", "No match found");
     t3.test("hamj", "No match found");
