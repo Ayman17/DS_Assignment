@@ -12,7 +12,7 @@ public:
     Node *right = nullptr;
     Node *parent = nullptr;
 
-    Node(int high, int low, Node *parent)
+    Node(int low, int high, Node *parent)
     {
         this->high = high;
         this->low = low;
@@ -30,7 +30,7 @@ public:
     {
         if (root == nullptr)
         {
-            root = new Node(high, low, nullptr);
+            root = new Node(low, high, nullptr);
             return;
         }
 
@@ -55,22 +55,19 @@ public:
 
         if ((low < current->low) || (low == current->low && high < current->high))
         {
-            current->left = new Node(high, low, current);
+            current->left = new Node(low, high, current);
             current->left->parent = current;
-            updateMax(current->left);
         }
         else
         {
-            current->right = new Node(high, low, current);
+            current->right = new Node(low, high, current);
             current->right->parent = current;
-            updateMax(current->right);
         }
-        cout << "done";
+        updateMax(nodeParent, high);
     }
 
-    void updateMax(Node *current)
+    void updateMax(Node *current, int newMax)
     {
-        int newMax = current->high;
         while (current != nullptr)
         {
             if (current->max >= newMax)
@@ -83,15 +80,59 @@ public:
         }
     }
 
-    void SearchInterval(int high, int low)
+    Node* SearchInterval(int low, int high)
     {
         if (root == nullptr)
         {
-            return;
+            throw "Tree is empty";
         }
 
-        Node *miniumLow = root;
-        Node *current = root;
+        Node* target = new Node(low, high, nullptr);
+
+        return searchInterval(root, target);
+
+    }
+
+    Node* searchInterval(Node *node, Node* target) {
+        if (node == nullptr || !canOverLap(node, target)) {
+            return nullptr;
+        }
+
+        Node* minimum = nullptr;
+
+        if (isOverlapping(target, node)) {
+            minimum = node;
+        }
+
+        Node* currentLeft = searchInterval(node->left, target);
+        Node* currentRight = searchInterval(node->right, target);
+
+        if (currentLeft != nullptr && isOverlapping(currentLeft, target)) {
+            if (minimum == nullptr || currentLeft->low < minimum->low) {
+                minimum = currentLeft;
+            }
+        } 
+
+        if (currentRight != nullptr && isOverlapping(currentRight, target)) {
+            if (minimum == nullptr || currentRight->low < minimum->low) {
+                minimum = currentRight;
+            }
+        } 
+
+        return minimum;
+    }
+
+     
+
+    bool canOverLap(Node *node, Node* target) {
+        if (node->low > target->low && node->left == nullptr) {
+            return false; //15, 20, max 40
+        }
+        if (node->max < target->high) {
+            return false;
+        }
+
+        return true;
     }
 
     bool isOverlapping(Node *first, Node *second)
@@ -109,5 +150,12 @@ int main()
     tree.InsertInterval(5, 20);
     tree.InsertInterval(12, 15);
     tree.InsertInterval(30, 40);
-    cout << "hahahaha";
+
+    Node* result = tree.SearchInterval(5, 40);
+    if (result == nullptr) {
+        cout << "null";
+    } else {
+        cout << result->low;
+
+    }
 }
