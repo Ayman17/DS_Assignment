@@ -1,1 +1,1 @@
-        int newMax = current->high;
+  static const int NUM_SEARCHES_PER_TREE = 10;
