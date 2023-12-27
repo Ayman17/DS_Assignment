@@ -26,7 +26,7 @@ class IntervalTree
 public:
     Node *root = nullptr;
 
-    void InsertInterval(int high, int low)
+    void InsertInterval(int low, int high)
     {
         if (root == nullptr)
         {
@@ -35,32 +35,37 @@ public:
         }
 
         Node *current = root;
-        Node *parent = nullptr;
+        Node *nodeParent = nullptr;
 
         while (current != nullptr)
         {
-            if ((low < parent->low) || (low == parent->low && high < parent->high))
+            if ((low < current->low) || (low == current->low && high < current->high))
             {
-                parent = current;
+                nodeParent = current;
                 current = current->left;
             }
             else
             {
-                parent = current;
+                nodeParent = current;
                 current = current->right;
             }
         }
 
-        if ((low < parent->low) || (low == parent->low && high < parent->high))
+        current = nodeParent;
+
+        if ((low < current->low) || (low == current->low && high < current->high))
         {
-            parent->left = new Node(high, low, parent);
+            current->left = new Node(high, low, current);
+            current->left->parent = current;
+            updateMax(current->left);
         }
         else
         {
-            parent->right = new Node(high, low, parent);
+            current->right = new Node(high, low, current);
+            current->right->parent = current;
+            updateMax(current->right);
         }
-
-        updateMax(parent);
+        cout << "done";
     }
 
     void updateMax(Node *current)
